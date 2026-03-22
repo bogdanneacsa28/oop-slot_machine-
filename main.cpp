@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstring>
 #include <vector>
+#include <ctime>
 
 using namespace std;
 
@@ -371,7 +372,6 @@ class GamesMenu {
     private:
     vector<SlotMachine*> slotMachines;
     void printSlotMachines() const;
-    void printSlotPlayerStats() const;
     void addSlotMachinesFromDataBase();
     public:
     GamesMenu();
@@ -778,6 +778,7 @@ void SlotMachine::startSlotMachine(Player &currentPlayer, CasinoSession &current
 }
 
 int main() {
+    srand(time(0));
     int choiceNumber;
     char username[256], password[256];
 
