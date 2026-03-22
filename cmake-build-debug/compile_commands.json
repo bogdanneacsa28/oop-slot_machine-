@@ -1,8 +1,8 @@
 [
 {
-  "directory": "D:/POO/Slot_machine/cmake-build-debug",
-  "command": "C:\\PROGRA~1\\JETBRA~1\\CLION2~1.3\\bin\\mingw\\bin\\G__~1.EXE -g -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles\\Slot_machine.dir\\main.cpp.obj -c D:\\POO\\Slot_machine\\main.cpp",
-  "file": "D:/POO/Slot_machine/main.cpp",
-  "output": "D:/POO/Slot_machine/cmake-build-debug/CMakeFiles/Slot_machine.dir/main.cpp.obj"
+  "directory": "D:/POO/Slot_machine/oop-slot_machine-/cmake-build-debug",
+  "command": "C:\\PROGRA~1\\JETBRA~1\\CLION2~1.3\\bin\\mingw\\bin\\G__~1.EXE -g -std=gnu++20 -fdiagnostics-color=always -o CMakeFiles\\Slot_machine.dir\\main.cpp.obj -c D:\\POO\\Slot_machine\\oop-slot_machine-\\main.cpp",
+  "file": "D:/POO/Slot_machine/oop-slot_machine-/main.cpp",
+  "output": "D:/POO/Slot_machine/oop-slot_machine-/cmake-build-debug/CMakeFiles/Slot_machine.dir/main.cpp.obj"
 }
 ]

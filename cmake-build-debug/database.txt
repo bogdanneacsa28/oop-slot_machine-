@@ -1,2 +1,3 @@
-Bogdan 123 2500 true false
+Bogdan 123 4300 true false
 NebunuLaJokuri777 amanet123 504000 true false
+JeanGaoaza kendama123 20000 true false

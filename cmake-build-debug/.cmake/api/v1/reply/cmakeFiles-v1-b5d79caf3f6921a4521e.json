@@ -927,8 +927,8 @@
 	"kind" : "cmakeFiles",
 	"paths" : 
 	{
-		"build" : "D:/POO/Slot_machine/cmake-build-debug",
-		"source" : "D:/POO/Slot_machine"
+		"build" : "D:/POO/Slot_machine/oop-slot_machine-/cmake-build-debug",
+		"source" : "D:/POO/Slot_machine/oop-slot_machine-"
 	},
 	"version" : 
 	{

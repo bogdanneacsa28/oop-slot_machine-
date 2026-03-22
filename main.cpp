@@ -41,6 +41,7 @@ class Player {
     bool getSelfExclusion() const;
     void depositCredits(int credits);
     void withdrawCredits(int credits);
+    char* getUsername() const;
 };
 
 int Player::noAccounts = getNumberAccounts();
@@ -107,6 +108,9 @@ void Player::depositCredits(int credits) {
 }
 void Player::withdrawCredits(int credits) {
     this->credits = this->credits-credits;
+}
+char* Player::getUsername() const {
+    return this->username;
 }
 class SlotMachine {
 private:
@@ -242,16 +246,33 @@ void updatePlayerInDatabase(const char* targetUsername, int newCredits, bool new
     remove("database.txt");
     rename("tempdatabase.txt", "database.txt");
 }
-
+void deletePlayerInDatabase(const Player& player) {
+    ifstream inFile("database.txt");
+    ofstream tempFile("tempdatabase.txt");
+    string line, u, p, a, s;
+    int c;
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        if (ss >> u >> p >> c >> a >> s) {
+            if (u != player.getUsername()) {
+                tempFile << line << endl;
+            }
+        }
+    }
+    inFile.close();
+    tempFile.close();
+    remove("database.txt");
+    rename("tempdatabase.txt", "database.txt");
+}
 int main() {
     int choiceNumber;
     char username[256], password[256];
 
-    cout<<"Loading..."<<endl;
+    cout<<"Loading...";
     this_thread::sleep_for(chrono::seconds(2));
     system("clear");
 
-    cout << "\n💲 Welcome to Top-Dollar Casino! 💲" << endl;
+    cout << "💲 Welcome to Top-Dollar Casino! 💲" << endl;
     while (true) {
         cout << "[1] Sign in\n[2] Create account\n[3] Exit" << endl;
         cout << "Enter your choice: ";
@@ -260,22 +281,21 @@ int main() {
         switch (choiceNumber) {
             case 1: {
                 system("clear");
-                cout <<endl;
                 cout << "💎 Sign In 💎" << endl;
                 cout << "Username: "; cin >> username;
                 cout << "Password: "; cin >> password;
                 if (verifyLogin(username, password)) {
                     Player currentPlayer(username, password, verifyLogin(username, password), isAgeVerified(username), isSelfExclusion(username));
                     system("clear");
-                    cout << "\n✅ Login successful! Welcome, " << username << "." << endl;
+                    cout << "✅ Login successful! Welcome, " << username << "." << endl;
                     bool isLoggedIn = true;
                     while(isLoggedIn) {
                         cout << "Credits: " << currentPlayer.getCredits() << endl;
                         if(currentPlayer.getAgeVerify() == false)
                             cout << "‼️ Warning: Age verification needed !"<<endl;
                         if (currentPlayer.getSelfExclusion())
-                            cout << "‼️ Warning: You are self excluded !"<<endl;
-                        cout<<"[1] Account settings\n[2] Deposit\n[3] Withdrawal\n[4] Games\n[5] Exit\nEnter your choice: ";
+                            cout << "‼️ Warning: You are self excluded . Your account will be deleted after logging out!"<<endl;
+                        cout<<"[1] Account settings\n[2] Deposit\n[3] Withdrawal\n[4] Games\n[5] Log out\nEnter your choice: ";
                         cin >> choiceNumber;
                         switch (choiceNumber) {
                             case 1: {
@@ -350,6 +370,8 @@ int main() {
                                             if (depositCredits >= 200) {
                                                 isDepositDone = true;
                                                 currentPlayer.depositCredits(depositCredits);
+                                                cout<<"Please wait...";
+                                                this_thread::sleep_for(chrono::seconds(2));
                                                 system("clear");
                                                 cout<<"❤️ Congratulations, you deposited successfully!"<<endl;
                                                 updatePlayerInDatabase(username, currentPlayer.getCredits(),currentPlayer.getAgeVerify(), currentPlayer.getSelfExclusion());
@@ -386,6 +408,8 @@ int main() {
                                             if (withdrawalCredits >= 500 && withdrawalCredits <= currentPlayer.getCredits()) {
                                                 isWithdrawalDone = true;
                                                 currentPlayer.withdrawCredits(withdrawalCredits);
+                                                cout<<"Please wait...";
+                                                this_thread::sleep_for(chrono::seconds(2));
                                                 system("clear");
                                                 cout<<"❤️ Congratulations, you withdrew successfully!"<<endl;
                                                 updatePlayerInDatabase(username, currentPlayer.getCredits(),currentPlayer.getAgeVerify(), currentPlayer.getSelfExclusion());
@@ -411,6 +435,11 @@ int main() {
                             }
 
                             case 5: {
+                                if (currentPlayer.getSelfExclusion()) {
+                                    deletePlayerInDatabase(currentPlayer);
+                                }
+                                system("clear");
+                                cout<<"Logged out!"<<endl;
                                 isLoggedIn = false;
                                 break;
                             }
@@ -429,7 +458,6 @@ int main() {
             }
             case 2: {
                 system("clear");
-                cout <<endl;
                 cout << "💎 Create account! 💎" << endl;
                 cout << "Username: "; cin >> username;
 
@@ -442,6 +470,7 @@ int main() {
                     if (outFile.is_open()) {
                         outFile << username << " " << password << " " << 500 << " false" <<" "<< "false" << endl;
                         outFile.close();
+                        system("clear");
                         cout << "✅ Account created! You received 500 starting credits." << endl;
                     }
                 }
