@@ -33,6 +33,8 @@ class Player {
     Player(const char* username, const char* password, const int credits, bool ageVerified, bool selfExclusion);
     Player(const Player& obj);
     Player& operator=(const Player& obj);
+    friend istream& operator>>(istream& in, Player& obj);
+    friend ostream& operator<<(ostream& out, Player& obj);
     ~Player();
     void setAgeVerified(bool ageVerified);
     void setSelfExclusion(bool selfExclusion);
@@ -114,47 +116,62 @@ void Player::withdrawCredits(int credits) {
 char* Player::getUsername() const {
     return this->username;
 }
+
 class SlotMachine {
 private:
     const int machineID;
     static int noSlots;
+    char* slotName;
     float jackpot;
     int* betHistory;
     int historySize;
+    char specialSymbol;
 public:
     SlotMachine();
-    SlotMachine(float jackpot,int *betHistory, int historySize);
+    SlotMachine(char* slotName,float jackpot,int *betHistory, int historySize,char specialSymbol);
     SlotMachine(const SlotMachine& obj);
     SlotMachine& operator=(const SlotMachine& obj);
+    friend ifstream& operator>>(ifstream& in, SlotMachine& obj);
+    friend ostream& operator<<(ostream& out,SlotMachine& obj);
+    char* getSlotName() const;
     ~SlotMachine();
+    void startSlotMachine();
 };
 int SlotMachine::noSlots = 0;
 SlotMachine::SlotMachine():machineID(++noSlots) {
+    this->slotName = strcpy(new char[4], "N\A");
     this->jackpot = 0;
     this->betHistory = nullptr;
     this->historySize = 0;
+    this->specialSymbol = '-';
 }
-SlotMachine::SlotMachine(float jackpot, int* betHistory, int historySize):machineID(++noSlots) {
+SlotMachine::SlotMachine(char* slotName,float jackpot, int* betHistory, int historySize,char specialSymbol):machineID(++noSlots) {
+    this->slotName = strcpy(new char[strlen(slotName)+1], slotName);
     this->jackpot = jackpot;
     this->betHistory = new int[historySize];
     for (int i=0;i < historySize ;i++) {
         this->betHistory[i] = betHistory[i];
     }
     this->historySize = historySize;
+    this->specialSymbol = specialSymbol;
 }
 SlotMachine::SlotMachine(const SlotMachine& obj):machineID(++noSlots) {
     this->jackpot = obj.jackpot;
+    this->slotName = strcpy(new char[strlen(obj.slotName)+1], obj.slotName);
     this->betHistory = new int[obj.historySize];
     for (int i=0; i < obj.historySize ; i++) {
         this->betHistory[i] = obj.betHistory[i];
     }
     this->historySize = obj.historySize;
+    this->specialSymbol = obj.specialSymbol;
 }
 SlotMachine& SlotMachine::operator=(const SlotMachine& obj) {
       if (this == &obj) {
           return *this;
       }
     else {
+        delete [] this->slotName;
+        this->slotName = strcpy(new char[strlen(obj.slotName)+1], obj.slotName);
         this->jackpot = obj.jackpot;
         delete [] this->betHistory;
         this->betHistory = new int[obj.historySize];
@@ -162,15 +179,33 @@ SlotMachine& SlotMachine::operator=(const SlotMachine& obj) {
             this->betHistory[i] = obj.betHistory[i];
         }
         this->historySize = obj.historySize;
+        this->specialSymbol = obj.specialSymbol;
         return *this;
     }
 };
 SlotMachine::~SlotMachine() {
+    delete [] this->slotName;
     delete [] this->betHistory;
+}
+ostream& operator<<(ostream& out, SlotMachine& obj) {
+    out<<obj.slotName<<" | Current jackpot: "<<obj.jackpot<<endl;
+    return out;
+}
+ifstream& operator>>(ifstream& in, SlotMachine& obj) {
+    char tempName[256];
+    if (in >> tempName >> obj.jackpot >> obj.specialSymbol) {
+        delete [] obj.slotName;
+        obj.slotName = strcpy(new char[strlen(tempName)+1], tempName);
+    }
+
+    return in;
+}
+char* SlotMachine::getSlotName() const{
+    return this->slotName;
 }
 class Reel {
     private:
-    char currentSymbol;
+    char currentSymbol[4];
     char* possibleSymbol;
     int numSymbols;
     bool isSpinning;
@@ -184,21 +219,70 @@ class Reel {
 };
 class CasinoSession {
     private:
-    long sessionDuration;
     float totalWagered;
     float totalWon;
     bool isActive;
     public:
     CasinoSession();
-    CasinoSession(long sessionDuration,float totalWagered, float totalWon, bool isActive);
+    CasinoSession(float totalWagered, float totalWon, bool isActive);
     CasinoSession(const CasinoSession& obj);
     CasinoSession& operator=(const CasinoSession& obj);
     ~CasinoSession();
 };
 
-class GameMenu {
-
+class GamesMenu {
+    private:
+    vector<SlotMachine*> slotMachines;
+    void printSlotMachines() const;
+    void printSlotPlayerStats() const;
+    void addSlotMachinesFromDataBase();
+    public:
+    GamesMenu();
+    ~GamesMenu();
+    void run();
 };
+GamesMenu::~GamesMenu() {
+    for (size_t i=0; i < slotMachines.size(); i++) {
+        delete slotMachines[i];
+    }
+    slotMachines.clear();
+}
+void GamesMenu::printSlotMachines() const{
+    if (slotMachines.empty()) {
+        cout << "‼️ Games Menu: No slots available." << endl;
+        return;
+    }
+    for (size_t i=0; i < slotMachines.size(); i++) {
+        cout<<"["<<i<<"] "<<slotMachines[i]->getSlotName()<<endl;
+    }
+}
+void GamesMenu::addSlotMachinesFromDataBase() {
+    ifstream dataBase("database_slotmachines.txt");
+    SlotMachine obj;
+    while (dataBase >> obj) {
+        slotMachines.push_back(new SlotMachine(obj));
+    }
+    dataBase.close();
+}
+GamesMenu::GamesMenu() {
+    addSlotMachinesFromDataBase();
+}
+void GamesMenu::run() {
+    while (true) {
+        cout<<"[1] List current games\n[2] Jackpots\n[3] Player stats\n[4] Exit\nEnter your choice: ";
+        int choice;
+        cin>>choice;
+        switch (choice) {
+            case 1: {
+                system("clear");
+                this->printSlotMachines();
+                cout<<"Enter your choice: ";
+                cin>>choice;
+
+            }
+        }
+    }
+}
 
 bool isAgeVerified(const char* username) {
     ifstream dataBase("database.txt");
@@ -250,8 +334,40 @@ bool doesUsernameExist(const char* username) {
     dataBase.close();
     return false;
 }
-
-
+ostream& operator<<(ostream& out,Player& obj) {
+    out<<"Player: "<<obj.username<<" | "<<"Credits: "<<obj.credits<<endl;
+    return out;
+}
+istream& operator>>(istream& in,Player& obj) {
+    char tempUsername[256];
+    char tempPassword[256];
+    in.ignore();
+    cout<<"Enter username: ";
+    in.getline(tempUsername,256);
+    if (doesUsernameExist(tempUsername)) {
+        system("clear");
+        cout << "⚠️ Error: The username already exists!" << endl;
+        return in;
+    } else {
+        cout<<"Enter password: ";
+        in.getline(tempPassword,256);
+    }
+    delete[] obj.username;
+    delete[] obj.password;
+    obj.username = strcpy(new char[strlen(tempUsername)+1],tempUsername);
+    obj.password = strcpy(new char[strlen(tempPassword)+1],tempPassword);
+    obj.credits = 500;
+    obj.ageVerified = false;
+    obj.selfExclusion = false;
+    ofstream outFile("database.txt", ios::app);
+    if (outFile.is_open()) {
+        outFile << obj.username << " " << obj.password << " " << 500 << " false" <<" "<< "false" << endl;
+        outFile.close();
+        system("clear");
+        cout << "✅ Account created! You received 500 starting credits." << endl;
+    }
+    return in;
+}
 int verifyLogin(const char* username, const char* password) {
     ifstream dataBase("database.txt");
     string line, u, p, a, s;
@@ -475,7 +591,8 @@ int main() {
                             }
                                 case 4: {
                                 system("clear");
-                                cout<<"🎰 Games 🎰"<<endl;
+                                GamesMenu menu;
+                                menu.run();
                                 break;
                             }
 
@@ -502,24 +619,11 @@ int main() {
                 break;
             }
             case 2: {
-                system("clear");
-                cout << "💎 Create account! 💎" << endl;
-                cout << "Username: "; cin >> username;
-
-                if (doesUsernameExist(username)) {
-                    cout << "⚠️ Error: The username already exists!" << endl;
-                } else {
-                    cout << "Password: "; cin >> password;
-
-                    ofstream outFile("database.txt", ios::app);
-                    if (outFile.is_open()) {
-                        outFile << username << " " << password << " " << 500 << " false" <<" "<< "false" << endl;
-                        outFile.close();
-                        system("clear");
-                        cout << "✅ Account created! You received 500 starting credits." << endl;
-                    }
-                }
-                break;
+                    system("clear");
+                    cout << "\n💎 Create account! 💎" << endl;
+                    Player contNou;
+                    cin >> contNou;
+                    break;
             }
             case 3:
                 return 0;
