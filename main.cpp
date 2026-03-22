@@ -20,6 +20,17 @@ int getNumberAccounts() {
     dataBase.close();
     return number;
 }
+int findMultiplier(char symbol) {
+    if (symbol == 'J')
+        return 2;
+    if (symbol == 'Q')
+        return 5;
+    if (symbol == 'K')
+        return 10;
+    if (symbol == 'A')
+        return 25;
+    return 0;
+}
 class Player {
     private:
     static int noAccounts;
@@ -43,6 +54,7 @@ class Player {
     bool getSelfExclusion() const;
     void depositCredits(int credits);
     void withdrawCredits(int credits);
+    void betCredits(int credits);
     char* getUsername() const;
 };
 
@@ -113,12 +125,131 @@ void Player::depositCredits(int credits) {
 void Player::withdrawCredits(int credits) {
     this->credits = this->credits-credits;
 }
+
+void Player::betCredits(int credits) {
+    this->credits = this->credits-credits;
+}
+
 char* Player::getUsername() const {
     return this->username;
+}
+class Reel {
+private:
+    char topSymbol;
+    char middleSymbol;
+    char bottomSymbol;
+    char* possibleSymbols;
+    int numSymbols;
+public:
+    Reel();
+    ~Reel();
+    Reel(const Reel& obj);
+    Reel& operator=(const Reel& obj);
+    char showTopSymbol();
+    char showMiddleSymbol();
+    char showBottomSymbol();
+    void roll();
+};
+
+Reel::Reel() {
+    this->numSymbols = 15;
+    this->possibleSymbols = new char[this->numSymbols + 1];
+    strcpy(this->possibleSymbols, "JJJJJQQQQKKKAA");
+    this->possibleSymbols[14] = '$';
+    this->possibleSymbols[15] = '\0';
+}
+char Reel::showTopSymbol() {
+    return this->topSymbol;
+}
+char Reel::showMiddleSymbol() {
+    return this->middleSymbol;
+}
+char Reel::showBottomSymbol() {
+    return this->bottomSymbol;
+}
+
+void Reel::roll() {
+    int randomIndex = rand() % this->numSymbols;
+    this->topSymbol = this->possibleSymbols[randomIndex];
+    this->middleSymbol = this->possibleSymbols[(randomIndex + 1) % this->numSymbols];
+    this->bottomSymbol = this->possibleSymbols[(randomIndex + 2) % this->numSymbols];
+}
+Reel::Reel(const Reel& obj) {
+    this->numSymbols = obj.numSymbols;
+    this->possibleSymbols = new char[this->numSymbols + 1];
+    strcpy(this->possibleSymbols, obj.possibleSymbols);
+    this->topSymbol = obj.topSymbol;
+    this->middleSymbol = obj.middleSymbol;
+    this->bottomSymbol = obj.bottomSymbol;
+}
+
+Reel& Reel::operator=(const Reel& obj) {
+    if (this == &obj)
+        return *this;
+    delete[] this->possibleSymbols;
+    this->numSymbols = obj.numSymbols;
+    this->possibleSymbols = new char[this->numSymbols + 1];
+    strcpy(this->possibleSymbols, obj.possibleSymbols);
+    this->topSymbol = obj.topSymbol;
+    this->middleSymbol = obj.middleSymbol;
+    this->bottomSymbol = obj.bottomSymbol;
+    return *this;
+}
+Reel::~Reel() {
+    delete [] possibleSymbols;
+}
+class CasinoSession {
+private:
+    string lastGamePlayed;
+    float totalWagered;
+    float totalWon;
+    bool isActive;
+public:
+    CasinoSession();
+    void setTotalWagered(float creditsWagered);
+    void setTotalWon(float creditsWon);
+    void getLastGamePlayed(char lastGame[50]);
+    friend ostream& operator<<(ostream& out,CasinoSession& obj);
+    void setSessionStatus(bool sessionStatus);
+    bool isSessionActive() const;
+    ~CasinoSession();
+};
+void CasinoSession::setSessionStatus(bool sessionStatus) {
+    this->isActive = sessionStatus;
+}
+
+bool CasinoSession::isSessionActive() const {
+    return this->isActive;
+}
+
+CasinoSession::CasinoSession() {
+    this->lastGamePlayed = "No game played yet";
+    this->totalWagered = 0;
+    this->totalWon = 0;
+    this->isActive = false;
+}
+void CasinoSession::setTotalWagered(float creditsWagered) {
+    this->totalWagered = this->totalWagered + creditsWagered;
+}
+void CasinoSession::setTotalWon(float creditsWon) {
+    this->totalWon = this->totalWon + creditsWon;
+}
+void CasinoSession::getLastGamePlayed(char lastGame[50]) {
+    this->lastGamePlayed = lastGame;
+}
+ostream& operator<<(ostream& out, CasinoSession& obj) {
+    out<<"Last game played: "<<obj.lastGamePlayed<<endl;
+    out<<"Total wagered: "<<obj.totalWagered<<endl;
+    out<<"Total won: "<<obj.totalWon<<endl;
+    return out;
+}
+
+CasinoSession::~CasinoSession() {
 }
 
 class SlotMachine {
 private:
+    Reel reelList[3];
     const int machineID;
     static int noSlots;
     char* slotName;
@@ -135,7 +266,38 @@ public:
     friend ostream& operator<<(ostream& out,SlotMachine& obj);
     char* getSlotName() const;
     ~SlotMachine();
-    void startSlotMachine();
+    void startSlotMachine(Player& currentPlayer,CasinoSession& currentSession);
+    void symbolTranslate(char symbol) {
+        if (symbol == '$') {
+            if (this->specialSymbol == '!') {
+                cout<<"🔥";
+            }
+            else
+                if (this->specialSymbol == '^') {
+                    cout<<"👑";
+                }
+                else
+                    if (this->specialSymbol == '*') {
+                        cout<<"💎";
+                    }
+        }
+        else
+            if (symbol == 'J') {
+                cout<<"🍒";
+            }
+        else
+            if (symbol == 'Q') {
+                cout<<"🍊";
+            }
+        else
+            if (symbol == 'K') {
+                cout<<"🍉";
+            }
+        else
+            if (symbol == 'A') {
+                cout<<"❤️";
+            }
+    }
 };
 int SlotMachine::noSlots = 0;
 SlotMachine::SlotMachine():machineID(++noSlots) {
@@ -200,35 +362,10 @@ ifstream& operator>>(ifstream& in, SlotMachine& obj) {
 
     return in;
 }
+
 char* SlotMachine::getSlotName() const{
     return this->slotName;
 }
-class Reel {
-    private:
-    char currentSymbol[4];
-    char* possibleSymbol;
-    int numSymbols;
-    bool isSpinning;
-    public:
-    Reel();
-    Reel(char currentSymbol, char* possibleSymbol, int numSymbols, bool isSpinning);
-    Reel(const Reel& obj);
-    Reel& operator=(const Reel& obj);
-    ~Reel();
-    void roll();
-};
-class CasinoSession {
-    private:
-    float totalWagered;
-    float totalWon;
-    bool isActive;
-    public:
-    CasinoSession();
-    CasinoSession(float totalWagered, float totalWon, bool isActive);
-    CasinoSession(const CasinoSession& obj);
-    CasinoSession& operator=(const CasinoSession& obj);
-    ~CasinoSession();
-};
 
 class GamesMenu {
     private:
@@ -239,7 +376,7 @@ class GamesMenu {
     public:
     GamesMenu();
     ~GamesMenu();
-    void run();
+    void run(Player& currentPlayer);
 };
 GamesMenu::~GamesMenu() {
     for (size_t i=0; i < slotMachines.size(); i++) {
@@ -255,6 +392,7 @@ void GamesMenu::printSlotMachines() const{
     for (size_t i=0; i < slotMachines.size(); i++) {
         cout<<"["<<i<<"] "<<slotMachines[i]->getSlotName()<<endl;
     }
+    cout<<"["<<slotMachines.size()<<"] Exit"<<endl;
 }
 void GamesMenu::addSlotMachinesFromDataBase() {
     ifstream dataBase("database_slotmachines.txt");
@@ -267,9 +405,10 @@ void GamesMenu::addSlotMachinesFromDataBase() {
 GamesMenu::GamesMenu() {
     addSlotMachinesFromDataBase();
 }
-void GamesMenu::run() {
+void GamesMenu::run(Player& currentPlayer) {
+    CasinoSession casinoSession;
     while (true) {
-        cout<<"[1] List current games\n[2] Jackpots\n[3] Player stats\n[4] Exit\nEnter your choice: ";
+        cout<<"[1] List current games\n[2] Jackpots\n[3] Player stats this session\n[4] Exit\nEnter your choice: ";
         int choice;
         cin>>choice;
         switch (choice) {
@@ -278,7 +417,38 @@ void GamesMenu::run() {
                 this->printSlotMachines();
                 cout<<"Enter your choice: ";
                 cin>>choice;
-
+                if (choice == slotMachines.size()) {
+                    cout<<"Leaving..."<<endl;
+                    this_thread::sleep_for(chrono::seconds(2));
+                    system("clear");
+                }
+                if (choice < 0 || choice > slotMachines.size()) {
+                    system("clear");
+                    cout << "Enter a valid choice! " << endl;
+                }
+                else {
+                    slotMachines[choice]->startSlotMachine(currentPlayer,casinoSession);
+                    break;
+                }
+            }
+                case 2: {
+                system("clear");
+                for (size_t i=0; i < slotMachines.size(); i++)
+                    cout<<*slotMachines[i]<<endl;
+                break;
+            }
+            case 3: {
+                system("clear");
+                cout<<casinoSession;
+                break;
+            }
+                case 4: {
+                system("clear");
+                return;
+            }
+                default: {
+                system("clear");
+                cout<<"Enter a valid choice! " << endl;
             }
         }
     }
@@ -407,6 +577,26 @@ void updatePlayerInDatabase(const char* targetUsername, int newCredits, bool new
     remove("database.txt");
     rename("tempdatabase.txt", "database.txt");
 }
+void updateSlotsDataBase(const char* targetUsername, int newJackpot) {
+    ifstream inFile("database_slotmachines.txt");
+    ofstream tempFile("tempdatabase_slotmachines.txt");
+    string line,n,s;
+    int j;
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        if (ss >> n >> j >> s) {
+            if (n == targetUsername) {
+                tempFile << n <<" "<< newJackpot<<" "<< s << endl;
+            }
+            else
+                tempFile<<line<<endl;
+        }
+    }
+    inFile.close();
+    tempFile.close();
+    remove("database_slotmachines.txt");
+    rename("tempdatabase_slotmachines.txt", "database_slotmachines.txt");
+}
 void deletePlayerInDatabase(const Player& player) {
     ifstream inFile("database.txt");
     ofstream tempFile("tempdatabase.txt");
@@ -425,6 +615,168 @@ void deletePlayerInDatabase(const Player& player) {
     remove("database.txt");
     rename("tempdatabase.txt", "database.txt");
 }
+void SlotMachine::startSlotMachine(Player &currentPlayer, CasinoSession &currentSession) {
+    currentSession.getLastGamePlayed(this->getSlotName());
+    currentSession.setSessionStatus(true);
+    system("clear");
+    cout<<"Please wait..."<<endl;
+    this_thread::sleep_for(chrono::seconds(2));
+    system("clear");
+    int currentBet=10;
+    int choice;
+    while (currentSession.isSessionActive()) {
+        cout<<*this<<endl;
+        cout<<currentPlayer<<endl;
+        cout<<"[1] Spin for "<<currentBet<<endl;
+        cout<<"[2] Change bet" <<endl;
+        cout<<"[3] Exit"<<endl;
+        cout<<"Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: {
+                if (currentPlayer.getCredits()>=currentBet) {
+                    system("clear");
+                    cout<<"GOOD LUCK!"<<endl;
+                    this_thread::sleep_for(chrono::seconds(2));
+                    currentSession.setTotalWagered(currentBet);
+                    currentPlayer.betCredits(currentBet);
+                    this->jackpot = this->jackpot + currentBet;
+                    updateSlotsDataBase(this->slotName,this->jackpot);
+                    updatePlayerInDatabase(currentPlayer.getUsername(),currentPlayer.getCredits(),currentPlayer.getAgeVerify(),currentPlayer.getSelfExclusion());
+                    reelList[0].roll();
+                    reelList[1].roll();
+                    reelList[2].roll();
+                    cout<<"[ ";
+                    symbolTranslate(reelList[0].showTopSymbol());
+                    cout<<" ] ";
+                    cout<<"[ ";
+                    symbolTranslate(reelList[1].showTopSymbol());
+                    cout<<" ] ";
+                    cout<<"[ ";
+                    symbolTranslate(reelList[2].showTopSymbol());
+                    cout<<" ]"<<endl;
+                    cout<<"[ ";
+                    symbolTranslate(reelList[0].showMiddleSymbol());
+                    cout<<" ] ";
+                    cout<<"[ ";
+                    symbolTranslate(reelList[1].showMiddleSymbol());
+                    cout<<" ] ";
+                    cout<<"[ ";
+                    symbolTranslate(reelList[2].showMiddleSymbol());
+                    cout<<" ]"<<endl;
+                    cout<<"[ ";
+                    symbolTranslate(reelList[0].showBottomSymbol());
+                    cout<<" ] ";
+                    cout<<"[ ";
+                    symbolTranslate(reelList[1].showBottomSymbol());
+                    cout<<" ] ";
+                    cout<<"[ ";
+                    symbolTranslate(reelList[2].showBottomSymbol());
+                    cout<<" ]"<<endl;
+                    int totalWins=0;
+                    char paylines[3][3] = {
+                        reelList[0].showTopSymbol(), reelList[1].showTopSymbol(), reelList[2].showTopSymbol(),
+                        reelList[0].showMiddleSymbol(),reelList[1].showMiddleSymbol(), reelList[2].showMiddleSymbol(),
+                        reelList[0].showBottomSymbol(),reelList[1].showBottomSymbol(), reelList[2].showBottomSymbol(),
+                    };
+                    int nrJackpots=0;
+                    for (int i=0;i<3;i++) {
+                        for (int j=0;j<3;j++) {
+                            if (paylines[i][j]=='$') {
+                                nrJackpots++;
+                            }
+                        }
+                    }
+                    if (nrJackpots==3) {
+                        system("clear");
+                        cout<<endl;
+                        cout<<"========================================="<<endl;
+                        cout<<"🚨🚨 JACKPOT WINNER 🚨🚨 YOU'VE WON "<<this->jackpot<<endl;
+                        cout<<"========================================="<<endl;
+                        totalWins += this->jackpot;
+                        this->jackpot = 0;
+                        updateSlotsDataBase(this->slotName,this->jackpot);
+                        updatePlayerInDatabase(currentPlayer.getUsername(),currentPlayer.getCredits(),currentPlayer.getAgeVerify(),currentPlayer.getSelfExclusion());
+                    }
+                    for (int i=0;i<3;i++) {
+                        if (paylines[i][0]==paylines[i][1] && paylines[i][1]==paylines[i][2]) {
+                            totalWins=totalWins + currentBet*findMultiplier(paylines[i][0]);
+                        }
+                    }
+                    if (paylines[0][0]==paylines[1][1] && paylines[1][1]==paylines[2][2]) {
+                        totalWins=totalWins + currentBet*findMultiplier(paylines[1][1]);
+                    }
+                    if (paylines[0][2]==paylines[1][1] && paylines[1][1]==paylines[2][0]) {
+                        totalWins=totalWins + currentBet*findMultiplier(paylines[1][1]);
+                    }
+                    if (totalWins>0) {
+                        cout<<"========================================="<<endl;
+                        cout<<"GAME ALERT: You've won "<<totalWins<<endl;
+                        cout<<"========================================="<<endl;
+                        currentSession.setTotalWon(totalWins);
+                        currentPlayer.depositCredits(totalWins);
+                        updatePlayerInDatabase(currentPlayer.getUsername(),currentPlayer.getCredits(),currentPlayer.getAgeVerify(),currentPlayer.getSelfExclusion());
+                    }
+                }
+                break;
+            }
+            case 2: {
+                system("clear");
+                cout<<"==========================================================="<<endl;
+                cout<<"10       50      100     200     400     800     1000"<<endl;
+                cout<<"==========================================================="<<endl;
+                int chooseBet;
+                cout<<"Choose Bet: ";
+                cin>>chooseBet;
+                switch (chooseBet) {
+                    case 10: {
+                        currentBet=10;
+                        break;
+                    }
+                        case 50: {
+                        currentBet=50;
+                        break;
+                    }
+                        case 100: {
+                        currentBet=100;
+                        break;
+                    }
+                        case 200: {
+                        currentBet=200;
+                        break;
+                    }
+                        case 400: {
+                        currentBet=400;
+                        break;
+                    }
+                        case 800: {
+                        currentBet=800;
+                        break;
+                    }
+                        case 1000: {
+                        currentBet=1000;
+                        break;
+                    }
+                        default: {
+                        system("clear");
+                        cout<<"Choose a valid bet!"<<endl;
+                    }
+                }
+                break;
+            }
+                case 3: {
+                currentSession.setSessionStatus(false);
+                system("clear");
+                break;
+            }
+                default: {
+                system("clear");
+                cout<<"Enter a valid choice!"<<endl;
+            }
+        }
+    }
+}
+
 int main() {
     int choiceNumber;
     char username[256], password[256];
@@ -591,8 +943,13 @@ int main() {
                             }
                                 case 4: {
                                 system("clear");
-                                GamesMenu menu;
-                                menu.run();
+                                if (currentPlayer.getSelfExclusion()) {
+                                    cout<<"‼️ Warning: You are self exclusion . Your account will be deleted after logging out !";
+                                }
+                                else {
+                                    GamesMenu menu;
+                                    menu.run(currentPlayer);
+                                }
                                 break;
                             }
 
