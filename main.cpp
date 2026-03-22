@@ -91,6 +91,8 @@ Player& Player::operator=(const Player& obj) {
         return *this;
     }
     else{
+        delete [] this->username;
+        delete [] this->password;
         this->username = strcpy(new char[strlen(obj.username)+1], obj.username);
         this->password = strcpy(new char[strlen(obj.password)+1], obj.password);
         this->credits = obj.credits;
@@ -126,7 +128,46 @@ public:
     SlotMachine& operator=(const SlotMachine& obj);
     ~SlotMachine();
 };
-
+int SlotMachine::noSlots = 0;
+SlotMachine::SlotMachine():machineID(++noSlots) {
+    this->jackpot = 0;
+    this->betHistory = nullptr;
+    this->historySize = 0;
+}
+SlotMachine::SlotMachine(float jackpot, int* betHistory, int historySize):machineID(++noSlots) {
+    this->jackpot = jackpot;
+    this->betHistory = new int[historySize];
+    for (int i=0;i < historySize ;i++) {
+        this->betHistory[i] = betHistory[i];
+    }
+    this->historySize = historySize;
+}
+SlotMachine::SlotMachine(const SlotMachine& obj):machineID(++noSlots) {
+    this->jackpot = obj.jackpot;
+    this->betHistory = new int[obj.historySize];
+    for (int i=0; i < obj.historySize ; i++) {
+        this->betHistory[i] = obj.betHistory[i];
+    }
+    this->historySize = obj.historySize;
+}
+SlotMachine& SlotMachine::operator=(const SlotMachine& obj) {
+      if (this == &obj) {
+          return *this;
+      }
+    else {
+        this->jackpot = obj.jackpot;
+        delete [] this->betHistory;
+        this->betHistory = new int[obj.historySize];
+        for (int i=0; i < obj.historySize ; i++) {
+            this->betHistory[i] = obj.betHistory[i];
+        }
+        this->historySize = obj.historySize;
+        return *this;
+    }
+};
+SlotMachine::~SlotMachine() {
+    delete [] this->betHistory;
+}
 class Reel {
     private:
     char currentSymbol;
@@ -153,6 +194,10 @@ class CasinoSession {
     CasinoSession(const CasinoSession& obj);
     CasinoSession& operator=(const CasinoSession& obj);
     ~CasinoSession();
+};
+
+class GameMenu {
+
 };
 
 bool isAgeVerified(const char* username) {
