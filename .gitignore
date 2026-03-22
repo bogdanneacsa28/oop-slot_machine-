@@ -1,4 +1,4 @@
-# Prerequisities
+# Prerequisites
 *.d
 
 # Compiled Object files
@@ -11,10 +11,18 @@
 *.gch
 *.pch
 
+# Linker files
+*.ilk
+
+# Debugger Files
+*.pdb
+
 # Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
+*.so.*
+
 
 # Fortran module files
 *.mod
@@ -26,28 +34,41 @@
 *.a
 *.lib
 
-# Executables (Nu vrem sa urcam executabilul pe GitHub)
+# Executables
 *.exe
 *.out
 *.app
 
-# IDE specific (Visual Studio, VS Code, CLion)
-.vscode/
-.vs/
-.idea/
-*.suo
-*.user
-*.cbp
+# Build directories
+build/
+Build/
+build-*/
+
+# CMake generated files
 cmake-build-debug/
-cmake-build-release/
+CMakeLists.txt
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+install_manifest.txt 
+compile_commands.json
 
-# OS generated files
-.DS_Store
-Thumbs.db
+# Temporary files
+*.tmp 
+*.log 
+*.bak 
+*.swp 
 
-# ========================================== #
-# CUSTOM PENTRU TOP-DOLLAR CASINO 🎰         #
-# ========================================== #
-# Ignoram fisierele de tranzitie/temp
-tempdatabase.txt
-tempdatabase_slotmachines.txt
+# vcpkg
+vcpkg_installed/
+
+# debug information files
+*.dwo
+
+# test output & cache
+Testing/
+.cache/
+
+.idea/
+main
