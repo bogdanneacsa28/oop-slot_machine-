@@ -1,2 +1,2 @@
-Bogdan 123 500 true false
-NebunuLaJokuri777 amanet123 500000 true false
+Bogdan 123 2500 true false
+NebunuLaJokuri777 amanet123 504000 true false

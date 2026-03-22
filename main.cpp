@@ -4,7 +4,8 @@
 #include <string>
 #include <thread>
 #include <chrono>
-
+#include <cstring>
+#include <vector>
 
 using namespace std;
 
@@ -15,45 +16,46 @@ int getNumberAccounts() {
     while (getline(dataBase, line)) {
         number++;
     }
+
     dataBase.close();
     return number;
 }
-
 class Player {
     private:
     static int noAccounts;
-    string username;
-    string password;
+    char* username;
+    char* password;
     int credits;
     bool ageVerified;
     bool selfExclusion;
     public:
-    //constructors and destructors
     Player();
-    Player(string username, string password, int credits, bool ageVerified, bool selfExclusion);
+    Player(const char* username, const char* password, const int credits, bool ageVerified, bool selfExclusion);
+    Player(const Player& obj);
+    Player& operator=(const Player& obj);
     ~Player();
-    //operators
-    //setters
     void setAgeVerified(bool ageVerified);
     void setSelfExclusion(bool selfExclusion);
-    //getters
     int getCredits() const;
     bool getAgeVerify() const;
     bool getSelfExclusion() const;
-    //methods
-
+    void depositCredits(int credits);
+    void withdrawCredits(int credits);
 };
+
 int Player::noAccounts = getNumberAccounts();
+
 Player::Player() {
-    this->username = "";
-    this->password = "";
+    this->username = strcpy(new char[strlen("")+1], "");
+    this->password = strcpy(new char[strlen("")+1], "");
     this->credits = 0;
     this->ageVerified = false;
     this->selfExclusion = false;
 }
-Player::Player(string username,string password,int credits,bool ageVerified,bool selfExclusion) {
-    this->username = username;
-    this->password = password;
+
+Player::Player(const char* username, const char* password, const int credits, bool ageVerified, bool selfExclusion) {
+    this->username = strcpy(new char[strlen(username)+1], username);
+    this->password = strcpy(new char[strlen(password)+1], password);
     this->credits = credits;
     this->ageVerified = ageVerified;
     this->selfExclusion = selfExclusion;
@@ -75,52 +77,116 @@ bool Player::getSelfExclusion() const {
 void Player::setSelfExclusion(bool selfExclusion) {
     this->selfExclusion = selfExclusion;
 }
+
+Player::Player(const Player &obj) {
+    this->username = strcpy(new char[strlen(obj.username)+1], obj.username);
+    this->password = strcpy(new char[strlen(obj.password)+1], obj.password);
+    this->credits = obj.credits;
+    this->ageVerified = obj.ageVerified;
+    this->selfExclusion = obj.selfExclusion;
+}
+Player& Player::operator=(const Player& obj) {
+    if (this == &obj) {
+        return *this;
+    }
+    else{
+        this->username = strcpy(new char[strlen(obj.username)+1], obj.username);
+        this->password = strcpy(new char[strlen(obj.password)+1], obj.password);
+        this->credits = obj.credits;
+        this->ageVerified = obj.ageVerified;
+        this->selfExclusion = obj.selfExclusion;
+        return *this;
+    }
+};
 Player::~Player() {
+    delete[] username;
+    delete[] password;
 }
-bool isAgeVerified(string username) {
+void Player::depositCredits(int credits) {
+    this->credits = this->credits+credits;
+}
+void Player::withdrawCredits(int credits) {
+    this->credits = this->credits-credits;
+}
+class SlotMachine {
+private:
+    const int machineID;
+    static int noSlots;
+    float jackpot;
+    int* betHistory;
+    int historySize;
+public:
+    SlotMachine();
+    SlotMachine(float jackpot,int *betHistory, int historySize);
+    SlotMachine(const SlotMachine& obj);
+    SlotMachine& operator=(const SlotMachine& obj);
+    ~SlotMachine();
+};
+
+class Reel {
+    private:
+    char currentSymbol;
+    char* possibleSymbol;
+    int numSymbols;
+    bool isSpinning;
+    public:
+    Reel();
+    Reel(char currentSymbol, char* possibleSymbol, int numSymbols, bool isSpinning);
+    Reel(const Reel& obj);
+    Reel& operator=(const Reel& obj);
+    ~Reel();
+    void roll();
+};
+class CasinoSession {
+    private:
+    long sessionDuration;
+    float totalWagered;
+    float totalWon;
+    bool isActive;
+    public:
+    CasinoSession();
+    CasinoSession(long sessionDuration,float totalWagered, float totalWon, bool isActive);
+    CasinoSession(const CasinoSession& obj);
+    CasinoSession& operator=(const CasinoSession& obj);
+    ~CasinoSession();
+};
+
+bool isAgeVerified(const char* username) {
     ifstream dataBase("database.txt");
     string line, u, p, a, s;
     int c;
     while (getline(dataBase, line)) {
         stringstream ss(line);
         if (ss >> u >> p >> c >> a >> s) {
-            if (u == username && a == "true") {
+            if (u == username) {
                 dataBase.close();
-                return true;
+                return a == "true";
             }
-            else{
-                dataBase.close();
-                return false;
-            }
-
         }
     }
     dataBase.close();
     return false;
 }
-bool isSelfExclusion(string username) {
+
+bool isSelfExclusion(const char* username) {
     ifstream dataBase("database.txt");
     string line, u, p, a, s;
     int c;
     while (getline(dataBase, line)) {
         stringstream ss(line);
         if (ss >> u >> p >> c >> a >> s) {
-            if (u == username && s == "true") {
+            if (u == username) {
                 dataBase.close();
-                return true;
+                return s == "true";
             }
-            else{
-                dataBase.close();
-                return false;
-            }
-
         }
     }
     dataBase.close();
     return false;
 }
-// check if username already exists
-bool doesUsernameExist(string username) {
+
+
+bool doesUsernameExist(const char* username) {
     ifstream dataBase("database.txt");
     string line, u, p, a, s;
     int c;
@@ -128,16 +194,16 @@ bool doesUsernameExist(string username) {
         stringstream ss(line);
         if (ss >> u >> p >> c >> a >> s)
             if (u == username) {
-            dataBase.close();
-            return true;
+                dataBase.close();
+                return true;
             }
     }
     dataBase.close();
     return false;
 }
 
-// verify the login credentials
-int verifyLogin(string username, string password) {
+
+int verifyLogin(const char* username, const char* password) {
     ifstream dataBase("database.txt");
     string line, u, p, a, s;
     int c;
@@ -153,7 +219,8 @@ int verifyLogin(string username, string password) {
     dataBase.close();
     return 0;
 }
-void updatePlayerInDatabase(string targetUsername, int newCredits, bool newAgeVerified, bool newSelfExclusion) {
+
+void updatePlayerInDatabase(const char* targetUsername, int newCredits, bool newAgeVerified, bool newSelfExclusion) {
     ifstream inFile("database.txt");
     ofstream tempFile("tempdatabase.txt");
     string line, u, p, a, s;
@@ -178,10 +245,12 @@ void updatePlayerInDatabase(string targetUsername, int newCredits, bool newAgeVe
 
 int main() {
     int choiceNumber;
-    string username, password;
+    char username[256], password[256];
+
     cout<<"Loading..."<<endl;
     this_thread::sleep_for(chrono::seconds(2));
     system("clear");
+
     cout << "\n💲 Welcome to Top-Dollar Casino! 💲" << endl;
     while (true) {
         cout << "[1] Sign in\n[2] Create account\n[3] Exit" << endl;
@@ -195,12 +264,12 @@ int main() {
                 cout << "💎 Sign In 💎" << endl;
                 cout << "Username: "; cin >> username;
                 cout << "Password: "; cin >> password;
-
                 if (verifyLogin(username, password)) {
-                    Player currentPlayer(username,password,verifyLogin(username, password),isAgeVerified(username),isSelfExclusion(username));
+                    Player currentPlayer(username, password, verifyLogin(username, password), isAgeVerified(username), isSelfExclusion(username));
                     system("clear");
                     cout << "\n✅ Login successful! Welcome, " << username << "." << endl;
-                    while(true) {
+                    bool isLoggedIn = true;
+                    while(isLoggedIn) {
                         cout << "Credits: " << currentPlayer.getCredits() << endl;
                         if(currentPlayer.getAgeVerify() == false)
                             cout << "‼️ Warning: Age verification needed !"<<endl;
@@ -230,38 +299,132 @@ int main() {
                                                 system("clear");
                                                 cout<<"‼️ Warning: Too young to gamble !";
                                             }
-                                            break;
                                         }
-                                        case 2: {
+                                        else {
                                             system("clear");
-                                            string selfExclusionChoice;
-                                            if (currentPlayer.getSelfExclusion() == false) {
-                                                cout <<"‼️ IMPORTANT ‼️"<<endl;
-                                                cout <<"Self-exclusion is a formal, voluntary agreement to ban yourself from gambling\nvenues or online platforms for a set period, helping you stop gambling. It acts as a protective barrier, requiring operators to close accounts and refuse service. Common services include GAMSTOP (online) or venue-specific agreements."<<endl;
-                                                cout <<"Are you sure you want to self exclude? (yes/no) :";
-                                                cin >> selfExclusionChoice;
-                                                if (selfExclusionChoice == "yes") {
-                                                    currentPlayer.setSelfExclusion(true);
-                                                    updatePlayerInDatabase(username, currentPlayer.getCredits(), currentPlayer.getAgeVerify(), currentPlayer.getSelfExclusion());
-                                                }
+                                            cout<<"✅ Age verified!"<<endl;
+                                        }
+                                        break;
+                                    }
+                                    case 2: {
+                                        system("clear");
+                                        string selfExclusionChoice;
+                                        if (currentPlayer.getSelfExclusion() == false) {
+                                            cout <<"‼️ IMPORTANT ‼️"<<endl;
+                                            cout <<"Self-exclusion is a formal, voluntary agreement to ban yourself from gambling\nvenues or online platforms for a set period, helping you stop gambling. It acts as a protective barrier, requiring operators to close accounts and refuse service. Common services include GAMSTOP (online) or venue-specific agreements."<<endl;
+                                            cout <<"Are you sure you want to self exclude? (yes/no) :";
+                                            cin >> selfExclusionChoice;
+                                            if (selfExclusionChoice == "yes") {
+                                                currentPlayer.setSelfExclusion(true);
+                                                updatePlayerInDatabase(username, currentPlayer.getCredits(), currentPlayer.getAgeVerify(), currentPlayer.getSelfExclusion());
                                             }
-                                            system("clear");
-                                            break;
                                         }
-                                        case 3: {
-                                            system("clear");
-                                            break;
-                                        }
-                                        default: {
-                                            cout<<"Enter a valid choice!"<<endl;
-                                            break;
-                                        }
+                                        system("clear");
+                                        break;
+                                    }
+                                    case 3: {
+                                        system("clear");
+                                        break;
+                                    }
+                                    default: {
+                                        system("clear");
+                                        cout<<"Enter a valid choice!"<<endl;
                                     }
                                 }
+                                break;
+                            }
+                            case 2: {
+                                system("clear");
+                                cout << "💵 Deposit 💵\nYou currently have "<<currentPlayer.getCredits()<<"\n[1] Continue with the deposit\n[2] Back to menu\nEnter your choice: " ;
+                                cin >> choiceNumber;
+                                switch (choiceNumber) {
+                                    case 1: {
+                                        int depositCredits;
+                                        bool isDepositDone = false;
+                                        system("clear");
+                                        while (!isDepositDone) {
+                                            system("clear");
+                                            cout <<"!! READ BEFORE DEPOSIT !!\n10 Credits are worth 1 RON\nThe deposit value needs to be higher than 200 credits(20 RON)\n";
+                                            cout <<"Enter the value you wish to deposit(in credits): ";
+                                            cin>>depositCredits;
+                                            if (depositCredits >= 200) {
+                                                isDepositDone = true;
+                                                currentPlayer.depositCredits(depositCredits);
+                                                system("clear");
+                                                cout<<"❤️ Congratulations, you deposited successfully!"<<endl;
+                                                updatePlayerInDatabase(username, currentPlayer.getCredits(),currentPlayer.getAgeVerify(), currentPlayer.getSelfExclusion());
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    case 2: {
+                                        system("clear");
+                                        break;
+                                    }
+                                        default: {
+                                        system("clear");
+                                        cout<<"Enter a valid choice!"<<endl;
+                                    }
                                 }
+                                break;
+                            }
+                                case 3: {
+                                system("clear");
+                                cout << "💸 Withdrawal 💸"<<endl;
+                                cout <<"You currently have "<<currentPlayer.getCredits()<<"\n[1] Continue with the withdrawal\n[2] Back to menu\nEnter your choice: ";
+                                cin >> choiceNumber;
+                                switch (choiceNumber) {
+                                    case 1: {
+                                        int withdrawalCredits;
+                                        bool isWithdrawalDone = false;
+                                        while (!isWithdrawalDone) {
+                                            system("clear");
+                                            cout <<"!! READ BEFORE WITHDRAWAL !!\n10 Credits are worth 1 RON\nThe withdrawal value needs to be higher than 500 credits(50 RON)\n";
+                                            cout <<"Current credits: "<<currentPlayer.getCredits()<<endl;
+                                            cout<<"Enter the value you wish to withdraw(in credits): ";
+                                            cin>>withdrawalCredits;
+                                            if (withdrawalCredits >= 500 && withdrawalCredits <= currentPlayer.getCredits()) {
+                                                isWithdrawalDone = true;
+                                                currentPlayer.withdrawCredits(withdrawalCredits);
+                                                system("clear");
+                                                cout<<"❤️ Congratulations, you withdrew successfully!"<<endl;
+                                                updatePlayerInDatabase(username, currentPlayer.getCredits(),currentPlayer.getAgeVerify(), currentPlayer.getSelfExclusion());
+                                            }
+                                        }
+                                        break;
+                                    }
+                                        case 2: {
+                                        system("clear");
+                                        break;
+                                    }
+                                        default: {
+                                        system("clear");
+                                        cout<<"Enter a valid choice!"<<endl;
+                                    }
+                                }
+                                break;
+                            }
+                                case 4: {
+                                system("clear");
+                                cout<<"🎰 Games 🎰"<<endl;
+                                break;
+                            }
+
+                            case 5: {
+                                isLoggedIn = false;
+                                break;
+                            }
+                            default: {
+                                system("clear");
+                                cout << "Enter a valid choice!" << endl;
+                                break;
                             }
                         }
                     }
+                } else {
+                    system("clear");
+                    cout << "❌ Invalid username or password!" << endl;
+                }
                 break;
             }
             case 2: {
@@ -277,7 +440,7 @@ int main() {
 
                     ofstream outFile("database.txt", ios::app);
                     if (outFile.is_open()) {
-                        outFile << username << " " << password << " " << 500 << "false" <<" "<< "false" << endl;
+                        outFile << username << " " << password << " " << 500 << " false" <<" "<< "false" << endl;
                         outFile.close();
                         cout << "✅ Account created! You received 500 starting credits." << endl;
                     }
