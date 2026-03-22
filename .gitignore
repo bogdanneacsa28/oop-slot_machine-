@@ -1,0 +1,53 @@
+# Prerequisities
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables (Nu vrem sa urcam executabilul pe GitHub)
+*.exe
+*.out
+*.app
+
+# IDE specific (Visual Studio, VS Code, CLion)
+.vscode/
+.vs/
+.idea/
+*.suo
+*.user
+*.cbp
+cmake-build-debug/
+cmake-build-release/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# ========================================== #
+# CUSTOM PENTRU TOP-DOLLAR CASINO 🎰         #
+# ========================================== #
+# Ignoram fisierele de tranzitie/temp
+tempdatabase.txt
+tempdatabase_slotmachines.txt
